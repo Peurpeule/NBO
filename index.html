@@ -221,7 +221,7 @@ const EXERCISES = [
   { id: 'ext-poulie', name: 'Extension poulie',  type: 'normal', reps: 20 },
   { id: 'dev-couche', name: 'Développé couché',  type: 'normal', reps: 20 },
   { id: 'squash',     name: 'Squash multipower', type: 'normal', reps: 20 },
-  { id: 'traineau',   name: 'Traîneau',          type: 'normal', reps: 20 },
+  { id: 'traineau',   name: 'Traîneau',          type: 'normal', sets: 3, repsLabel: 'aller-retour' },
   { id: 'biceps',     name: 'Biceps barre',      type: 'normal', reps: 20 },
   { id: 'crunch',     name: 'Crunch abdos',      type: 'max' },
   { id: 'battements', name: 'Battements abdos',  type: 'max' },
@@ -394,7 +394,7 @@ function validateSet() {
 
   state.lastSetValue = e.type === 'max' ? setData.reps : setData.weight;
   state.currentSets.push(setData);
-  const total = e.type === 'max' ? 1 : SETS;
+  const total = e.type === 'max' ? 1 : (e.sets ?? SETS);
 
   if (state.currentSets.length >= total) {
     state.done.push({ id: state.currentId, sets: [...state.currentSets] });
@@ -550,7 +550,7 @@ function renderProposing() {
     </div>
     <div class="big-emoji">🎲</div>
     <h1>${e.name}</h1>
-    <p class="sub">${e.type === 'max' ? '1 série · Maximum de répétitions' : `4 séries × ${e.reps} répétitions`}</p>
+    <p class="sub">${e.type === 'max' ? '1 série · Maximum de répétitions' : `${e.sets ?? SETS} séries × ${e.repsLabel ?? `${e.reps} répétitions`}`}</p>
     <button class="btn btn-green" onclick="acceptExercise()">Accepter cet exercice</button>
     <button class="btn btn-orange" onclick="stationOccupied()" ${!hasAlt ? 'disabled' : ''}>
       Station occupée — Autre exercice
@@ -561,7 +561,7 @@ function renderProposing() {
 
 function renderExercising() {
   const e = ex(state.currentId);
-  const total = e.type === 'max' ? 1 : SETS;
+  const total = e.type === 'max' ? 1 : (e.sets ?? SETS);
   const done = state.currentSets.length;
 
   // Pre-fill: current session's previous set takes priority over last session's data
@@ -620,7 +620,7 @@ function renderExercising() {
   return `
     ${phaseDots('exercising')}
     <h1>${e.name}</h1>
-    <p class="sub" style="margin-bottom:16px">${e.type === 'max' ? 'Maximum de répétitions' : `4 séries × ${e.reps} reps`}</p>
+    <p class="sub" style="margin-bottom:16px">${e.type === 'max' ? 'Maximum de répétitions' : `${e.sets ?? SETS} séries × ${e.repsLabel ?? `${e.reps} reps`}`}</p>
     ${dots}
     ${prevSets}
     ${restHtml}
@@ -731,7 +731,7 @@ function renderDashboard() {
 
     return `
       <div class="card">
-        <p class="ex-title">${e.name} <span class="ex-sub">${e.type === 'max' ? 'max reps' : `4 × ${e.reps}`}</span></p>
+        <p class="ex-title">${e.name} <span class="ex-sub">${e.type === 'max' ? 'max reps' : `${e.sets ?? SETS} × ${e.repsLabel ?? e.reps}`}</span></p>
         ${rows}
       </div>`;
   }).join('');
