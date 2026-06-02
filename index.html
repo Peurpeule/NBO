@@ -163,6 +163,15 @@
     .icon-skip { color: var(--muted); margin-top: 1px; }
     .small { font-size: 0.8rem; color: var(--muted); margin-top: 3px; }
 
+    /* Rest timer */
+    .rest-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 18px; margin-bottom: 12px;
+    }
+    .rest-label { color: var(--muted); font-size: 0.88rem; }
+    .rest-value { font-size: 1.5rem; font-weight: 700; color: var(--blue); transition: color .3s; }
+
     /* Dashboard */
     .dash-header {
       display: flex; align-items: center; gap: 14px;
@@ -299,6 +308,7 @@ const state = {
   comfort: null,
   sessionStart: null,
   prevPhase: 'warmup',
+  restTimer: null,   // { endTime, intervalId } | null
 };
 
 const ex = id => EXERCISES.find(e => e.id === id);
@@ -311,6 +321,7 @@ function pickRandom(exclude) {
 }
 
 function propose(excludeId = null) {
+  clearRestTimer();
   const id = pickRandom(excludeId);
   if (id === null) {
     if (state.pending.length > 0 && excludeId && state.pending.includes(excludeId)) {
@@ -363,6 +374,7 @@ function setComfort(value) {
 }
 
 function validateSet() {
+  clearRestTimer();
   const e = ex(state.currentId);
   if (!state.comfort) { showError('Sélectionne un ressenti avant de valider.'); return; }
 
@@ -388,8 +400,55 @@ function validateSet() {
     propose();
   } else {
     state.comfort = null;
+    // Set up rest timer state before render so the element is included in the DOM
+    state.restTimer = { endTime: Date.now() + 30000, intervalId: null };
     render();
+    startRestTimerInterval();
   }
+}
+
+function clearRestTimer() {
+  if (state.restTimer?.intervalId) clearInterval(state.restTimer.intervalId);
+  state.restTimer = null;
+}
+
+function startRestTimerInterval() {
+  if (!state.restTimer) return;
+  const { endTime } = state.restTimer;
+
+  const tick = () => {
+    const el = document.getElementById('rest-timer');
+    if (!el) { clearRestTimer(); return; }
+    const remaining = Math.ceil((endTime - Date.now()) / 1000);
+    if (remaining <= 0) {
+      clearRestTimer();
+      el.textContent = '✓ Go !';
+      el.style.color = 'var(--green)';
+      el.style.fontSize = '1.05rem';
+      playBeep();
+    } else {
+      el.textContent = `${remaining}s`;
+      el.style.color = remaining <= 5 ? 'var(--red)' : remaining <= 10 ? 'var(--orange)' : 'var(--blue)';
+    }
+  };
+
+  tick();
+  state.restTimer.intervalId = setInterval(tick, 250);
+}
+
+function playBeep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.4);
+  } catch (_) {}
 }
 
 function showError(msg) {
@@ -546,12 +605,22 @@ function renderExercising() {
     ? 'Terminer l\'exercice ✓'
     : (isLast ? 'Terminer l\'exercice ✓' : `Valider la série ${done + 1} →`);
 
+  const initialRemaining = state.restTimer
+    ? Math.max(0, Math.ceil((state.restTimer.endTime - Date.now()) / 1000))
+    : null;
+  const restHtml = initialRemaining !== null ? `
+    <div class="rest-bar">
+      <span class="rest-label">⏱ Repos</span>
+      <span id="rest-timer" class="rest-value">${initialRemaining > 0 ? `${initialRemaining}s` : '✓ Go !'}</span>
+    </div>` : '';
+
   return `
     ${phaseDots('exercising')}
     <h1>${e.name}</h1>
     <p class="sub" style="margin-bottom:16px">${e.type === 'max' ? 'Maximum de répétitions' : `4 séries × ${e.reps} reps`}</p>
     ${dots}
     ${prevSets}
+    ${restHtml}
     <div class="card">
       <p class="set-title">${e.type === 'max' ? 'Série unique' : `Série ${done + 1} / ${total}`}</p>
       ${inputHtml}
