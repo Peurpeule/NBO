@@ -6,16 +6,19 @@
   <title>Séance Muscu</title>
   <style>
     :root {
-      --bg: #0f0f13;
-      --surface: #1c1c24;
-      --surface2: #252530;
-      --blue: #4f8ef7;
-      --green: #34d399;
-      --orange: #fb923c;
-      --red: #f87171;
-      --text: #f0f0f5;
-      --muted: #8888a8;
-      --border: #2d2d3a;
+      --bg: #0b0b10;
+      --surface: #13131c;
+      --surface2: #1a1a26;
+      --violet: #8b80f9;
+      --violet-dim: #2d2a5e;
+      --teal: #5eead4;
+      --teal-dim: #14342e;
+      --slate: #64748b;
+      --rose: #f87171;
+      --rose-dim: #3a1a1a;
+      --text: #f1f5f9;
+      --muted: #64748b;
+      --border: #232336;
       --r: 14px;
     }
 
@@ -39,8 +42,8 @@
     /* Phase bar */
     .phase-bar { display: flex; gap: 6px; margin-bottom: 28px; }
     .pd { flex: 1; height: 3px; border-radius: 2px; background: var(--border); transition: background .3s; }
-    .pd-active { background: var(--blue); }
-    .pd-done   { background: var(--green); }
+    .pd-active { background: var(--violet); }
+    .pd-done   { background: var(--teal); }
 
     /* Typography */
     .big-emoji { font-size: 3.5rem; text-align: center; margin-bottom: 12px; }
@@ -76,17 +79,17 @@
     .btn:last-child { margin-bottom: 0; }
     .btn:active   { filter: brightness(0.82); }
     .btn:disabled { opacity: 0.35; cursor: not-allowed; filter: none; }
-    .btn-green  { background: var(--green);  color: #0a1a14; }
-    .btn-blue   { background: var(--blue);   color: white; }
-    .btn-orange { background: var(--orange); color: #1a0a00; }
-    .btn-ghost  { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+    .btn-green  { background: var(--violet); color: white; }
+    .btn-blue   { background: var(--violet); color: white; }
+    .btn-orange { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-ghost  { background: transparent; color: var(--muted); border: 1px solid var(--border); }
     .btn-sm     { padding: 10px 14px; font-size: 0.88rem; }
 
     /* Set progress dots */
     .set-dots { display: flex; gap: 8px; margin-bottom: 16px; }
     .sd { flex: 1; height: 8px; border-radius: 4px; background: var(--border); transition: background .2s; }
-    .sd-active { background: var(--blue); }
-    .sd-done   { background: var(--green); }
+    .sd-active { background: var(--violet); }
+    .sd-done   { background: var(--teal); }
 
     /* Previous sets list */
     .prev-sets { margin-bottom: 12px; }
@@ -99,8 +102,8 @@
     .set-row:last-child { border-bottom: none; }
     .set-num { color: var(--muted); min-width: 56px; }
     .badge { padding: 3px 9px; border-radius: 20px; font-size: 0.78rem; white-space: nowrap; }
-    .badge-ok   { background: #16a34a22; color: var(--green); }
-    .badge-hard { background: #ef444422; color: var(--red); }
+    .badge-ok   { background: var(--teal-dim); color: var(--teal); }
+    .badge-hard { background: var(--rose-dim); color: var(--rose); }
 
     /* Form */
     .set-title { font-weight: 600; font-size: 1rem; margin-bottom: 16px; color: var(--muted); }
@@ -118,7 +121,7 @@
       outline: none;
       transition: border-color .15s;
     }
-    input[type="number"]:focus { border-color: var(--blue); }
+    input[type="number"]:focus { border-color: var(--violet); }
     .hint { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
 
     .toggle-row { display: flex; gap: 8px; }
@@ -133,14 +136,14 @@
       transition: all .12s;
     }
     .t-btn:active { filter: brightness(0.85); }
-    .t-ok   { border-color: var(--green); background: #16a34a1a; color: var(--green); }
-    .t-hard { border-color: var(--red);   background: #ef44441a; color: var(--red); }
+    .t-ok   { border-color: var(--teal); background: var(--teal-dim); color: var(--teal); }
+    .t-hard { border-color: var(--rose); background: var(--rose-dim); color: var(--rose); }
 
     .err {
-      color: var(--red); font-size: 0.85rem;
+      color: var(--rose); font-size: 0.85rem;
       margin-bottom: 12px; display: none;
       padding: 8px 12px;
-      background: #ef44441a;
+      background: var(--rose-dim);
       border-radius: 8px;
     }
 
@@ -159,9 +162,23 @@
       padding: 10px 0; border-bottom: 1px solid var(--border);
     }
     .done-row:last-child { border-bottom: none; }
-    .icon-done { color: var(--green); margin-top: 1px; }
+    .icon-done { color: var(--teal); margin-top: 1px; }
     .icon-skip { color: var(--muted); margin-top: 1px; }
     .small { font-size: 0.8rem; color: var(--muted); margin-top: 3px; }
+
+    /* Propose tag */
+    .propose-tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--violet);
+      background: var(--violet-dim);
+      border-radius: 6px;
+      padding: 4px 10px;
+      margin-bottom: 16px;
+    }
 
     /* Rest timer */
     .rest-bar {
@@ -170,7 +187,7 @@
       border-radius: 10px; padding: 12px 18px; margin-bottom: 12px;
     }
     .rest-label { color: var(--muted); font-size: 0.88rem; }
-    .rest-value { font-size: 1.5rem; font-weight: 700; color: var(--blue); transition: color .3s; }
+    .rest-value { font-size: 1.5rem; font-weight: 700; color: var(--violet); transition: color .3s; }
 
     /* Dashboard */
     .dash-header {
@@ -431,7 +448,7 @@ function startRestTimerInterval() {
       playBeep();
     } else {
       el.textContent = `${remaining}s`;
-      el.style.color = remaining <= 5 ? 'var(--red)' : remaining <= 10 ? 'var(--orange)' : 'var(--blue)';
+      el.style.color = remaining <= 5 ? 'var(--rose)' : remaining <= 10 ? 'var(--teal)' : 'var(--violet)';
     }
   };
 
@@ -548,14 +565,14 @@ function renderProposing() {
       <span class="muted">${doneCount} / ${totalToDo} exercices</span>
       <span class="muted">${state.pending.length} restant${state.pending.length > 1 ? 's' : ''}</span>
     </div>
-    <div class="big-emoji">🎲</div>
+    <p class="propose-tag">Exercice suivant</p>
     <h1>${e.name}</h1>
     <p class="sub">${e.type === 'max' ? '1 série · Maximum de répétitions' : `${e.sets ?? SETS} séries × ${e.repsLabel ?? `${e.reps} répétitions`}`}</p>
-    <button class="btn btn-green" onclick="acceptExercise()">Accepter cet exercice</button>
+    <button class="btn btn-green" onclick="acceptExercise()">Commencer</button>
     <button class="btn btn-orange" onclick="stationOccupied()" ${!hasAlt ? 'disabled' : ''}>
-      Station occupée — Autre exercice
+      Station occupée — autre exercice
     </button>
-    <button class="btn btn-ghost" onclick="skipExercise()">Je ne le ferai pas aujourd'hui</button>
+    <button class="btn btn-ghost" onclick="skipExercise()">Ignorer aujourd'hui</button>
   `;
 }
 
