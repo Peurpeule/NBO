@@ -1,11 +1,478 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Séance Muscu</title>
+  <style>
+    :root {
+      --bg: #0f0f13;
+      --surface: #1c1c24;
+      --surface2: #252530;
+      --blue: #4f8ef7;
+      --green: #34d399;
+      --orange: #fb923c;
+      --red: #f87171;
+      --text: #f0f0f5;
+      --muted: #8888a8;
+      --border: #2d2d3a;
+      --r: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100dvh;
+    }
+
+    #app {
+      max-width: 430px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Phase bar */
+    .phase-bar { display: flex; gap: 6px; margin-bottom: 28px; }
+    .pd { flex: 1; height: 3px; border-radius: 2px; background: var(--border); transition: background .3s; }
+    .pd-active { background: var(--blue); }
+    .pd-done { background: var(--green); }
+
+    /* Typography */
+    .big-emoji { font-size: 3.5rem; text-align: center; margin-bottom: 12px; }
+    h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 6px; line-height: 1.2; }
+    .sub { color: var(--muted); font-size: 0.95rem; margin-bottom: 24px; line-height: 1.5; }
+
+    /* Progress row */
+    .progress-row { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 0.9rem; }
+    .muted { color: var(--muted); }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .tips { color: var(--muted); font-size: 0.9rem; line-height: 1.9; }
+
+    /* Buttons */
+    .btn {
+      display: block; width: 100%;
+      padding: 15px 20px;
+      border: none; border-radius: var(--r);
+      font-size: 1rem; font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 10px;
+      transition: filter .12s;
+      text-align: center;
+    }
+    .btn:last-child { margin-bottom: 0; }
+    .btn:active { filter: brightness(0.82); }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; filter: none; }
+    .btn-green  { background: var(--green);  color: #0a1a14; }
+    .btn-blue   { background: var(--blue);   color: white; }
+    .btn-orange { background: var(--orange); color: #1a0a00; }
+    .btn-ghost  { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+
+    /* Set progress dots */
+    .set-dots { display: flex; gap: 8px; margin-bottom: 16px; }
+    .sd { flex: 1; height: 8px; border-radius: 4px; background: var(--border); transition: background .2s; }
+    .sd-active { background: var(--blue); }
+    .sd-done   { background: var(--green); }
+
+    /* Previous sets list */
+    .prev-sets { margin-bottom: 12px; }
+    .set-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    .set-row:last-child { border-bottom: none; }
+    .set-num { color: var(--muted); min-width: 56px; }
+    .badge { padding: 3px 9px; border-radius: 20px; font-size: 0.78rem; white-space: nowrap; }
+    .badge-ok   { background: #16a34a22; color: var(--green); }
+    .badge-hard { background: #ef444422; color: var(--red); }
+
+    /* Form */
+    .set-title { font-weight: 600; font-size: 1rem; margin-bottom: 16px; color: var(--muted); }
+    .field { margin-bottom: 16px; }
+    label { display: block; font-size: 0.82rem; color: var(--muted); margin-bottom: 7px; letter-spacing: .02em; }
+    input[type="number"] {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 1.15rem;
+      font-weight: 500;
+      outline: none;
+      transition: border-color .15s;
+    }
+    input[type="number"]:focus { border-color: var(--blue); }
+
+    .toggle-row { display: flex; gap: 8px; }
+    .t-btn {
+      flex: 1; padding: 13px 8px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 0.92rem; font-weight: 600;
+      cursor: pointer;
+      transition: all .12s;
+    }
+    .t-btn:active { filter: brightness(0.85); }
+    .t-ok   { border-color: var(--green); background: #16a34a1a; color: var(--green); }
+    .t-hard { border-color: var(--red);   background: #ef44441a; color: var(--red); }
+
+    .err {
+      color: var(--red); font-size: 0.85rem;
+      margin-bottom: 12px; display: none;
+      padding: 8px 12px;
+      background: #ef44441a;
+      border-radius: 8px;
+    }
+
+    /* Stats */
+    .stats-row { display: flex; gap: 10px; margin-bottom: 20px; }
+    .stat {
+      flex: 1; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 8px; text-align: center;
+    }
+    .sv { display: block; font-size: 1.7rem; font-weight: 700; }
+    .sl { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+    /* Done summary */
+    .done-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .done-row:last-child { border-bottom: none; }
+    .icon-done { color: var(--green); margin-top: 1px; }
+    .icon-skip { color: var(--muted); margin-top: 1px; }
+    .small { font-size: 0.8rem; color: var(--muted); margin-top: 3px; }
+  </style>
 </head>
 <body>
-    Test
+<div id="app"></div>
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+
+const EXERCISES = [
+  { id: 'tirage-h',   name: 'Tirage horizontal', type: 'normal', reps: 20 },
+  { id: 'tirage-v',   name: 'Tirage vertical',   type: 'normal', reps: 20 },
+  { id: 'dev-nuque',  name: 'Développé nuque',   type: 'normal', reps: 20 },
+  { id: 'ext-poulie', name: 'Extension poulie',  type: 'normal', reps: 20 },
+  { id: 'dev-couche', name: 'Développé couché',  type: 'normal', reps: 20 },
+  { id: 'squash',     name: 'Squash multipower', type: 'normal', reps: 20 },
+  { id: 'traineau',   name: 'Traîneau',          type: 'normal', reps: 20 },
+  { id: 'biceps',     name: 'Biceps barre',      type: 'normal', reps: 20 },
+  { id: 'crunch',     name: 'Crunch abdos',      type: 'max' },
+  { id: 'battements', name: 'Battements abdos',  type: 'max' },
+];
+
+const SETS = 4;
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+
+const state = {
+  phase: 'warmup',              // warmup | proposing | exercising | stretching | done
+  pending: EXERCISES.map(e => e.id),
+  done: [],                     // [{id, sets: [{weight?, reps?, uncomfortable}]}]
+  skipped: [],                  // ids
+  currentId: null,
+  currentSets: [],
+  comfort: null,                // 'ok' | 'hard' | null
+};
+
+const ex = id => EXERCISES.find(e => e.id === id);
+
+// ── LOGIC ─────────────────────────────────────────────────────────────────────
+
+function pickRandom(exclude) {
+  const pool = state.pending.filter(id => id !== exclude);
+  return pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
+}
+
+function propose(excludeId = null) {
+  const id = pickRandom(excludeId);
+  if (id === null) {
+    // Either nothing left, or only the excluded one remains
+    if (state.pending.length > 0 && excludeId && state.pending.includes(excludeId)) {
+      state.currentId = excludeId; // forced: only this station available
+    } else {
+      state.phase = 'stretching';
+      render(); return;
+    }
+  } else {
+    state.currentId = id;
+  }
+  state.currentSets = [];
+  state.comfort = null;
+  state.phase = 'proposing';
+  render();
+}
+
+function startExercises() {
+  if (!state.pending.length) { state.phase = 'stretching'; render(); return; }
+  propose();
+}
+
+function acceptExercise() {
+  state.phase = 'exercising';
+  render();
+}
+
+function stationOccupied() {
+  // current exercise stays in pending; propose a different one
+  propose(state.currentId);
+}
+
+function skipExercise() {
+  state.skipped.push(state.currentId);
+  state.pending = state.pending.filter(id => id !== state.currentId);
+  if (!state.pending.length) { state.phase = 'stretching'; render(); return; }
+  propose();
+}
+
+function setComfort(value) {
+  state.comfort = value;
+  // targeted DOM update — avoid re-rendering and losing input values
+  document.querySelectorAll('.t-btn').forEach(btn => {
+    btn.className = 't-btn';
+    if (btn.dataset.v === 'ok'   && value === 'ok')   btn.classList.add('t-ok');
+    if (btn.dataset.v === 'hard' && value === 'hard') btn.classList.add('t-hard');
+  });
+  const err = document.getElementById('err-msg');
+  if (err) err.style.display = 'none';
+}
+
+function validateSet() {
+  const e = ex(state.currentId);
+
+  if (!state.comfort) { showError('Sélectionne un ressenti avant de valider.'); return; }
+
+  const setData = { uncomfortable: state.comfort === 'hard' };
+
+  if (e.type === 'max') {
+    const v = parseInt(document.getElementById('reps-inp').value, 10);
+    if (!v || v <= 0) { showError('Indique le nombre de répétitions.'); return; }
+    setData.reps = v;
+  } else {
+    const v = parseFloat(document.getElementById('weight-inp').value);
+    if (isNaN(v) || v < 0) { showError('Indique le poids utilisé (0 si sans charge).'); return; }
+    setData.weight = v;
+  }
+
+  state.currentSets.push(setData);
+  const total = e.type === 'max' ? 1 : SETS;
+
+  if (state.currentSets.length >= total) {
+    state.done.push({ id: state.currentId, sets: [...state.currentSets] });
+    state.pending = state.pending.filter(id => id !== state.currentId);
+    if (!state.pending.length) { state.phase = 'stretching'; render(); return; }
+    propose();
+  } else {
+    state.comfort = null;
+    render();
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('err-msg');
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+}
+
+function finishStretching() { state.phase = 'done'; render(); }
+
+function resetSession() {
+  Object.assign(state, {
+    phase: 'warmup',
+    pending: EXERCISES.map(e => e.id),
+    done: [], skipped: [],
+    currentId: null, currentSets: [], comfort: null,
+  });
+  render();
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+
+function phaseDots(phase) {
+  const idx = { warmup: 0, proposing: 1, exercising: 1, stretching: 2, done: 3 }[phase];
+  return `<div class="phase-bar">${[0, 1, 2].map(i =>
+    `<div class="pd ${i < idx ? 'pd-done' : i === idx ? 'pd-active' : ''}"></div>`
+  ).join('')}</div>`;
+}
+
+function renderWarmup() {
+  return `
+    ${phaseDots('warmup')}
+    <div class="big-emoji">🔥</div>
+    <h1>Échauffement</h1>
+    <p class="sub">Prépare ton corps avant de commencer les exercices.</p>
+    <div class="card">
+      <p class="tips">• 5 min cardio léger<br>• Rotations articulaires<br>• Mobilité dynamique</p>
+    </div>
+    <button class="btn btn-green" onclick="startExercises()">C'est fait — Commencer les exercices !</button>
+  `;
+}
+
+function renderProposing() {
+  const e = ex(state.currentId);
+  const hasAlt = state.pending.filter(id => id !== state.currentId).length > 0;
+  const doneCount = state.done.length;
+  const totalToDo = EXERCISES.length - state.skipped.length;
+
+  return `
+    ${phaseDots('proposing')}
+    <div class="progress-row">
+      <span class="muted">${doneCount} / ${totalToDo} exercices</span>
+      <span class="muted">${state.pending.length} restant${state.pending.length > 1 ? 's' : ''}</span>
+    </div>
+    <div class="big-emoji">🎲</div>
+    <h1>${e.name}</h1>
+    <p class="sub">${e.type === 'max' ? '1 série · Maximum de répétitions' : `4 séries × ${e.reps} répétitions`}</p>
+    <button class="btn btn-green" onclick="acceptExercise()">Accepter cet exercice</button>
+    <button class="btn btn-orange" onclick="stationOccupied()" ${!hasAlt ? 'disabled' : ''}>
+      Station occupée — Autre exercice
+    </button>
+    <button class="btn btn-ghost" onclick="skipExercise()">Je ne le ferai pas aujourd'hui</button>
+  `;
+}
+
+function renderExercising() {
+  const e = ex(state.currentId);
+  const total = e.type === 'max' ? 1 : SETS;
+  const done = state.currentSets.length;
+
+  const dots = e.type === 'normal' ? `
+    <div class="set-dots">
+      ${Array.from({ length: total }, (_, i) =>
+        `<div class="sd ${i < done ? 'sd-done' : i === done ? 'sd-active' : ''}"></div>`
+      ).join('')}
+    </div>` : '';
+
+  const prevSets = done > 0 ? `
+    <div class="prev-sets">
+      ${state.currentSets.map((s, i) => `
+        <div class="set-row">
+          <span class="set-num">Série ${i + 1}</span>
+          <span>${e.type === 'max' ? `${s.reps} reps` : `${s.weight} kg`}</span>
+          <span class="badge ${s.uncomfortable ? 'badge-hard' : 'badge-ok'}">
+            ${s.uncomfortable ? '😤 Difficile' : '✓ OK'}
+          </span>
+        </div>`).join('')}
+    </div>` : '';
+
+  const inputHtml = e.type === 'max' ? `
+    <div class="field">
+      <label>Répétitions effectuées</label>
+      <input id="reps-inp" type="number" inputmode="numeric" min="1" placeholder="ex : 45" autofocus>
+    </div>` : `
+    <div class="field">
+      <label>Poids utilisé (kg)</label>
+      <input id="weight-inp" type="number" inputmode="decimal" min="0" step="0.5" placeholder="ex : 40" autofocus>
+    </div>`;
+
+  const isLast = done + 1 >= total;
+  const btnLabel = e.type === 'max' ? 'Terminer l\'exercice ✓' : (isLast ? 'Terminer l\'exercice ✓' : `Valider la série ${done + 1} →`);
+
+  return `
+    ${phaseDots('exercising')}
+    <h1>${e.name}</h1>
+    <p class="sub" style="margin-bottom:16px">${e.type === 'max' ? 'Maximum de répétitions' : `4 séries × ${e.reps} reps`}</p>
+    ${dots}
+    ${prevSets}
+    <div class="card">
+      <p class="set-title">${e.type === 'max' ? 'Série unique' : `Série ${done + 1} / ${total}`}</p>
+      ${inputHtml}
+      <div class="field">
+        <label>Ressenti</label>
+        <div class="toggle-row">
+          <button class="t-btn ${state.comfort === 'ok'   ? 't-ok'   : ''}" data-v="ok"   onclick="setComfort('ok')">✓ Confortable</button>
+          <button class="t-btn ${state.comfort === 'hard' ? 't-hard' : ''}" data-v="hard" onclick="setComfort('hard')">😤 Difficile</button>
+        </div>
+      </div>
+      <div id="err-msg" class="err"></div>
+      <button class="btn btn-blue" onclick="validateSet()" style="margin-bottom:0">${btnLabel}</button>
+    </div>
+  `;
+}
+
+function renderStretching() {
+  const totalSets = state.done.reduce((a, d) => a + d.sets.length, 0);
+  return `
+    ${phaseDots('stretching')}
+    <div class="big-emoji">🧘</div>
+    <h1>Étirements</h1>
+    <p class="sub">Prends le temps d'étirer tous les groupes musculaires travaillés.</p>
+    <div class="stats-row">
+      <div class="stat"><span class="sv">${state.done.length}</span><span class="sl">exercices</span></div>
+      <div class="stat"><span class="sv">${totalSets}</span><span class="sl">séries</span></div>
+      <div class="stat"><span class="sv">${state.skipped.length}</span><span class="sl">ignorés</span></div>
+    </div>
+    <div class="card">
+      <p class="tips">• Pectoraux & épaules<br>• Dos & dorsaux<br>• Biceps & triceps<br>• Abdominaux<br>• Jambes (si traîneau)</p>
+    </div>
+    <button class="btn btn-green" onclick="finishStretching()">Séance terminée ! 🎉</button>
+  `;
+}
+
+function renderDone() {
+  const totalSets = state.done.reduce((a, d) => a + d.sets.length, 0);
+  const date = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  const rows = EXERCISES.map(e => {
+    const d = state.done.find(x => x.id === e.id);
+    const s = state.skipped.includes(e.id);
+    if (!d && !s) return '';
+
+    const detail = d
+      ? d.sets.map(set => e.type === 'max' ? `${set.reps} reps` : `${set.weight} kg`).join(' · ')
+      : '';
+
+    return `
+      <div class="done-row">
+        <span class="${d ? 'icon-done' : 'icon-skip'}">${d ? '✓' : '−'}</span>
+        <div>
+          <div style="${s ? 'color:var(--muted)' : ''}">${e.name}</div>
+          ${d ? `<div class="small">${detail}</div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="big-emoji">🏆</div>
+    <h1>Bravo !</h1>
+    <p class="sub">${date.charAt(0).toUpperCase() + date.slice(1)}</p>
+    <div class="stats-row">
+      <div class="stat"><span class="sv">${state.done.length}</span><span class="sl">exercices</span></div>
+      <div class="stat"><span class="sv">${totalSets}</span><span class="sl">séries</span></div>
+    </div>
+    <div class="card">${rows}</div>
+    <button class="btn btn-blue" onclick="resetSession()">Nouvelle séance</button>
+  `;
+}
+
+function render() {
+  document.getElementById('app').innerHTML = {
+    warmup:     renderWarmup,
+    proposing:  renderProposing,
+    exercising: renderExercising,
+    stretching: renderStretching,
+    done:       renderDone,
+  }[state.phase]();
+}
+
+render();
+</script>
 </body>
 </html>
