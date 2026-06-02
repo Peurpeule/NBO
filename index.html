@@ -42,11 +42,6 @@
       flex-direction: column;
     }
 
-    /* Phase bar */
-    .phase-bar { display: flex; gap: 6px; margin-bottom: 32px; }
-    .pd { flex: 1; height: 4px; border-radius: 2px; background: var(--border); transition: background .4s; }
-    .pd-active { background: var(--violet); }
-    .pd-done   { background: var(--teal); }
 
     /* Typography */
     .big-emoji { font-size: 3.5rem; text-align: center; margin-bottom: 14px; }
@@ -652,18 +647,12 @@ function getExerciseHistory(exerciseId, count = 5) {
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
 
-function phaseDots(phase) {
-  const idx = { warmup: 0, proposing: 1, exercising: 1, stretching: 2, done: 3 }[phase];
-  return `<div class="phase-bar">${[0, 1, 2].map(i =>
-    `<div class="pd ${i < idx ? 'pd-done' : i === idx ? 'pd-active' : ''}"></div>`
-  ).join('')}</div>`;
-}
 
 function renderWarmup() {
   const sessions = loadSessions();
   const lastDate = sessions.length ? formatDate(sessions[sessions.length - 1].date) : null;
   return `
-    ${phaseDots('warmup')}
+
     <div class="big-emoji">🔥</div>
     <h1>Échauffement</h1>
     <p class="sub">Prépare ton corps avant de commencer les exercices.</p>
@@ -684,7 +673,7 @@ function renderProposing() {
   const totalToDo = EXERCISES.length - state.skipped.length;
 
   return `
-    ${phaseDots('proposing')}
+
     <div class="progress-row">
       <span class="progress-count">${doneCount} / ${totalToDo} exercices</span>
       <span class="progress-count">${state.pending.length} restant${state.pending.length > 1 ? 's' : ''}</span>
@@ -759,7 +748,7 @@ function renderExercising() {
     </div>` : '';
 
   return `
-    ${phaseDots('exercising')}
+
     <h1>${e.name}</h1>
     <p class="sub" style="margin-bottom:16px">${e.type === 'max' ? 'Maximum de répétitions' : `${e.sets ?? SETS} séries × ${e.repsLabel ?? `${e.reps} reps`}`}</p>
     ${dots}
@@ -786,7 +775,7 @@ function renderStretching() {
   const totalSets = state.done.reduce((a, d) => a + d.sets.length, 0);
   const elapsed = state.sessionStart ? Math.round((Date.now() - state.sessionStart) / 1000) : null;
   return `
-    ${phaseDots('stretching')}
+
     <div class="big-emoji">🧘</div>
     <h1>Étirements</h1>
     <p class="sub">Prends le temps d'étirer tous les groupes musculaires travaillés.</p>
