@@ -309,6 +309,7 @@ const state = {
   sessionStart: null,
   prevPhase: 'warmup',
   restTimer: null,   // { endTime, intervalId } | null
+  lastSetValue: null, // weight or reps entered in the previous set of the current exercise
 };
 
 const ex = id => EXERCISES.find(e => e.id === id);
@@ -335,6 +336,7 @@ function propose(excludeId = null) {
   }
   state.currentSets = [];
   state.comfort = null;
+  state.lastSetValue = null;
   state.phase = 'proposing';
   render();
 }
@@ -390,6 +392,7 @@ function validateSet() {
     setData.weight = v;
   }
 
+  state.lastSetValue = e.type === 'max' ? setData.reps : setData.weight;
   state.currentSets.push(setData);
   const total = e.type === 'max' ? 1 : SETS;
 
@@ -561,11 +564,11 @@ function renderExercising() {
   const total = e.type === 'max' ? 1 : SETS;
   const done = state.currentSets.length;
 
-  // Pre-fill from last session (same set index)
+  // Pre-fill: current session's previous set takes priority over last session's data
   const lastData = getLastExerciseData(state.currentId);
   const lastSet = lastData?.sets?.[done];
-  const lastWeight = lastSet?.weight ?? null;
-  const lastReps   = lastSet?.reps   ?? null;
+  const lastWeight = state.lastSetValue ?? lastSet?.weight ?? null;
+  const lastReps   = state.lastSetValue ?? lastSet?.reps   ?? null;
 
   const dots = e.type === 'normal' ? `
     <div class="set-dots">
