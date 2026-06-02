@@ -19,7 +19,7 @@
       --text: #f1f5f9;
       --muted: #64748b;
       --border: #232336;
-      --r: 14px;
+      --r: 18px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -79,11 +79,12 @@
     .btn:last-child { margin-bottom: 0; }
     .btn:active   { filter: brightness(0.82); }
     .btn:disabled { opacity: 0.35; cursor: not-allowed; filter: none; }
-    .btn-green  { background: var(--violet); color: white; }
-    .btn-blue   { background: var(--violet); color: white; }
+    .btn-green  { background: linear-gradient(135deg, #8b80f9, #b17cf8); color: white; box-shadow: 0 4px 28px #8b80f93a; }
+    .btn-blue   { background: linear-gradient(135deg, #8b80f9, #b17cf8); color: white; box-shadow: 0 4px 28px #8b80f93a; }
     .btn-orange { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
     .btn-ghost  { background: transparent; color: var(--muted); border: 1px solid var(--border); }
     .btn-sm     { padding: 10px 14px; font-size: 0.88rem; }
+    .btn:active { transform: scale(0.96); }
 
     /* Set progress dots */
     .set-dots { display: flex; gap: 8px; margin-bottom: 16px; }
@@ -188,6 +189,48 @@
     }
     .rest-label { color: var(--muted); font-size: 0.88rem; }
     .rest-value { font-size: 1.5rem; font-weight: 700; color: var(--violet); transition: color .3s; }
+
+    /* ── Animations ─────────────────────────────────────────── */
+    @keyframes dotPop {
+      0%   { transform: scale(0.3); }
+      55%  { transform: scale(1.6); }
+      78%  { transform: scale(0.88); }
+      100% { transform: scale(1); }
+    }
+    @keyframes rowIn {
+      from { opacity: 0; transform: translateX(-10px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes badgeBounce {
+      0%   { transform: scale(0); opacity: 0; }
+      65%  { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+    @keyframes popIn {
+      0%   { transform: scale(0.5); opacity: 0; }
+      70%  { transform: scale(1.06); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+    @keyframes flashOverlay {
+      0%, 55% { opacity: 1; }
+      100%    { opacity: 0; }
+    }
+    @keyframes confettiFall {
+      to { transform: translateY(110vh) rotate(var(--cr, 360deg)); opacity: 0; }
+    }
+    @keyframes goBounce {
+      0%   { transform: scale(0.5); opacity: 0; }
+      65%  { transform: scale(1.35); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+
+    .sd-pop    { animation: dotPop 0.48s cubic-bezier(.36,.07,.19,.97) both; }
+    .row-new   { animation: rowIn 0.28s ease-out both; }
+    .badge-new { animation: badgeBounce 0.38s ease-out both; }
+    .card-active {
+      border-color: var(--violet-dim);
+      box-shadow: 0 0 0 1px var(--violet-dim), 0 8px 40px #8b80f912;
+    }
 
     /* Dashboard */
     .dash-header {
@@ -414,8 +457,10 @@ function validateSet() {
   const total = e.type === 'max' ? 1 : (e.sets ?? SETS);
 
   if (state.currentSets.length >= total) {
+    const doneName = e.name;
     state.done.push({ id: state.currentId, sets: [...state.currentSets] });
     state.pending = state.pending.filter(id => id !== state.currentId);
+    showExerciseDone(doneName);
     if (!state.pending.length) { state.phase = 'stretching'; render(); return; }
     propose();
   } else {
@@ -443,8 +488,9 @@ function startRestTimerInterval() {
     if (remaining <= 0) {
       clearRestTimer();
       el.textContent = '✓ Go !';
-      el.style.color = 'var(--green)';
+      el.style.color = 'var(--teal)';
       el.style.fontSize = '1.05rem';
+      el.style.animation = 'goBounce .5s cubic-bezier(.36,.07,.19,.97) both';
       playBeep();
     } else {
       el.textContent = `${remaining}s`;
@@ -471,6 +517,38 @@ function playBeep() {
   } catch (_) {}
 }
 
+function showExerciseDone(name) {
+  const el = document.createElement('div');
+  el.style.cssText = `position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    background:rgba(11,11,16,.78);backdrop-filter:blur(8px);z-index:200;pointer-events:none;
+    animation:flashOverlay 1.15s ease-out forwards`;
+  el.innerHTML = `<div style="text-align:center;animation:popIn .38s cubic-bezier(.36,.07,.19,.97) both">
+    <div style="font-size:3rem;margin-bottom:10px">💪</div>
+    <div style="font-size:1.5rem;font-weight:700;color:#f1f5f9;line-height:1.2">${name}</div>
+    <div style="margin-top:8px;font-size:.82rem;letter-spacing:.1em;color:var(--teal);font-weight:600">TERMINÉ</div>
+  </div>`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1250);
+}
+
+function launchConfetti() {
+  const colors = ['#8b80f9','#5eead4','#fbbf24','#f87171','#b17cf8','#86efac','#ffffff'];
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:201;overflow:hidden';
+  for (let i = 0; i < 72; i++) {
+    const p = document.createElement('div');
+    const size = 5 + Math.random() * 9;
+    p.style.cssText = `position:absolute;left:${Math.random()*100}%;top:-16px;
+      width:${size}px;height:${size}px;background:${colors[i % colors.length]};
+      border-radius:${Math.random() > .4 ? '50%' : '3px'};
+      --cr:${(Math.random()-.5)*720}deg;
+      animation:confettiFall ${1.2+Math.random()*1.2}s ${Math.random()*.7}s ease-in forwards`;
+    wrap.appendChild(p);
+  }
+  document.body.appendChild(wrap);
+  setTimeout(() => wrap.remove(), 2600);
+}
+
 function showError(msg) {
   const el = document.getElementById('err-msg');
   if (el) { el.textContent = msg; el.style.display = 'block'; }
@@ -480,6 +558,7 @@ function finishStretching() {
   saveCurrentSession();
   state.phase = 'done';
   render();
+  launchConfetti();
 }
 
 function showDashboard() {
@@ -590,17 +669,17 @@ function renderExercising() {
   const dots = e.type === 'normal' ? `
     <div class="set-dots">
       ${Array.from({ length: total }, (_, i) =>
-        `<div class="sd ${i < done ? 'sd-done' : i === done ? 'sd-active' : ''}"></div>`
+        `<div class="sd ${i < done ? 'sd-done' : i === done ? 'sd-active' : ''} ${i === done - 1 ? 'sd-pop' : ''}"></div>`
       ).join('')}
     </div>` : '';
 
   const prevSets = done > 0 ? `
     <div class="prev-sets">
       ${state.currentSets.map((s, i) => `
-        <div class="set-row">
+        <div class="set-row ${i === done - 1 ? 'row-new' : ''}">
           <span class="set-num">Série ${i + 1}</span>
           <span>${e.type === 'max' ? `${s.reps} reps` : `${s.weight} kg`}</span>
-          <span class="badge ${s.uncomfortable ? 'badge-hard' : 'badge-ok'}">
+          <span class="badge ${s.uncomfortable ? 'badge-hard' : 'badge-ok'} ${i === done - 1 ? 'badge-new' : ''}">
             ${s.uncomfortable ? '😤 Difficile' : '✓ OK'}
           </span>
         </div>`).join('')}
@@ -641,7 +720,7 @@ function renderExercising() {
     ${dots}
     ${prevSets}
     ${restHtml}
-    <div class="card">
+    <div class="card card-active">
       <p class="set-title">${e.type === 'max' ? 'Série unique' : `Série ${done + 1} / ${total}`}</p>
       ${inputHtml}
       <div class="field">
@@ -654,6 +733,7 @@ function renderExercising() {
       <div id="err-msg" class="err"></div>
       <button class="btn btn-blue" onclick="validateSet()" style="margin-bottom:0">${btnLabel}</button>
     </div>
+
   `;
 }
 
@@ -779,7 +859,8 @@ function renderDashboard() {
 }
 
 function render() {
-  document.getElementById('app').innerHTML = {
+  const app = document.getElementById('app');
+  app.innerHTML = {
     warmup:     renderWarmup,
     proposing:  renderProposing,
     exercising: renderExercising,
@@ -787,6 +868,10 @@ function render() {
     done:       renderDone,
     dashboard:  renderDashboard,
   }[state.phase]();
+  app.animate(
+    [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'translateY(0)' }],
+    { duration: 220, easing: 'ease-out', fill: 'both' }
+  );
 }
 
 render();
